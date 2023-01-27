@@ -8,8 +8,9 @@ class Database:
     user = config["database"]["user"]
     password = config["database"]["password"]
 
-websites = [ O.Website(website) for website in config["websites"] ]
+secrets = [website["database"]["password"] for website in config["websites"]]
+secrets.append(Database.password)
 
-    
+websites = [ O.Website(website, secrets) for website in config["websites"] ]
 
 del json
