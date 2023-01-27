@@ -1,0 +1,17 @@
+{
+  "websites": [
+    {
+      "port": 3000,
+      "database": {
+        "user": "wp_user",
+        "password": "password",
+        "database_name": "wp_database"
+      }
+    }
+  ],
+  "database": {
+    "host": "host",
+    "user": "database_root",
+    "password": "password"
+  }
+}

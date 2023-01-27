@@ -40,6 +40,7 @@ class Database:
         CommandUtils.runSQLQuery(connector, "create database if not exists {};".format(self.db_name))
         self.createUser(connector, self.user, "localhost", self.password, self.db_name)
         self.createUser(connector, self.user, "%", self.password, self.db_name)
+        CommandUtils.runSQLQuery(connector, "flush privileges;")
 
 
 def genFlag(word, value):
