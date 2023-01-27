@@ -27,19 +27,21 @@ class Paths:
 This is terrible for security, but it will do for now. 
 """
 class Database:
-    def __init__(self, user, password, db_name):
+    def __init__(self, user, password, db_name, secrets):
         self.user = user
         self.password = password
         self.db_name = db_name
+        self.secrets = secrets
 
     def createUser(self, connector, user, domain, password, database):
-        CommandUtils.runSQLQuery(connector, "create user '{}'@'{}' identified by '{}';".format(user, domain, password))
-        CommandUtils.runSQLQuery(connector, "grant all privileges on {}.* to '{}'@'{}';".format(database, user, domain))
+        CommandUtils.runSQLQuery(connector, "create user '{}'@'{}' identified by '{}';".format(user, domain, password), self.secrets)
+        CommandUtils.runSQLQuery(connector, "grant all privileges on {}.* to '{}'@'{}';".format(database, user, domain), self.secrets)
 
     def createDatabaseAndUser(self, connector):
-        CommandUtils.runSQLQuery(connector, "create database if not exists {};".format(self.db_name))
+        CommandUtils.runSQLQuery(connector, "create database if not exists {};".format(self.db_name), self.secrets)
         self.createUser(connector, self.user, "localhost", self.password, self.db_name)
         self.createUser(connector, self.user, "%", self.password, self.db_name)
+        CommandUtils.runSQLQuery(connector, "flush privileges;", self.secrets)
 
 
 def genFlag(word, value):
@@ -56,9 +58,10 @@ def genEFlags(user, password, db_name, host="192.168.0.2", table_pref="wp_"):
 
 
 class Website:
-    def __init__(self, website):
+    def __init__(self, website, secrets):
         self.paths = Paths(website["database"]["database_name"])
         self.port = website["port"]
+        self.secrets = secrets
         
         self.eFlags = genEFlags(
             website["database"]["user"],
@@ -69,11 +72,12 @@ class Website:
         self.database = Database(
             website["database"]["user"], 
             website["database"]["password"], 
-            website["database"]["database_name"]
+            website["database"]["database_name"],
+            secrets
         )
 
     def startDocker(self):
         vVars = "-d -p {}:80".format(self.port)
         vVars += self.paths.generatePaths() + " " + self.eFlags
         cmd = "docker run " + vVars + "wordpress"
-        return CommandUtils.runCommand(cmd)
+        return CommandUtils.runCommand(cmd, self.secrets)
